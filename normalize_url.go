@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 )
 
 func normalizeURL(urlString string) (string, error) {
@@ -32,23 +32,45 @@ func getURLSFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 		return nil, err
 	}
 	urls := []string{}
-	for n := range htmlNodes.Descendants() {
-		if n.Type == html.ElementNode && n.DataAtom == atom.A {
-			for _, a := range n.Attr {
-				if a.Key == "href" {
-					u, err := url.Parse(a.Val)
-					if err != nil {
-						return nil, err
-					}
-					base, err := url.Parse(rawBaseURL)
-					if err != nil {
-						return nil, err
-					}
-					urlBase := base.ResolveReference(u)
-					urls = append(urls, urlBase.String())
+	extractedUrls, err := extractURLs(htmlNodes, rawBaseURL, urls)
+	if err != nil {
+		return nil, err
+	}
+	return extractedUrls, nil
+}
+
+func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, error) {
+	if n == nil {
+		return urlSlice, nil
+	}
+	if n.Type == html.ElementNode && n.Data == "a" {
+		for _, nAtt := range n.Attr {
+			if nAtt.Key == "href" {
+				if nAtt.Val == "" {
+					continue
+				}
+				u, err := url.Parse(nAtt.Val)
+				if err != nil {
+					continue
+				}
+				base, err := url.Parse(baseURL)
+				if err != nil {
+					return nil, err
+				}
+				urlBase := base.ResolveReference(u)
+				if !slices.Contains(urlSlice, urlBase.String()) {
+					urlSlice = append(urlSlice, urlBase.String())
 				}
 			}
 		}
 	}
-	return urls, nil
+	urlSlice, err := extractURLs(n.FirstChild, baseURL, urlSlice)
+	if err != nil {
+		return nil, err
+	}
+	urlSlice, err = extractURLs(n.NextSibling, baseURL, urlSlice)
+	if err != nil {
+		return nil, err
+	}
+	return urlSlice, nil
 }
