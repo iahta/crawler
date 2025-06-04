@@ -114,16 +114,16 @@ func TestGetURLsFromHTML(t *testing.T) {
 			inputBody: `
 		<html>
 			<body>
-				<a href="/path/one">
+				<a href="/path/relative">
 					<span>Boot.dev</span>
 				</a>
-				<a href="https://other.com/path/one">
+				<a href="https://other.com/path/absolute">
 					<span>Boot.dev</span>
 				</a>
 			</body>
 		</html>
 		`,
-			expected: []string{"https://blog.boot.dev/path/one", "https://other.com/path/one"},
+			expected: []string{"https://blog.boot.dev/path/relative", "https://other.com/path/absolute"},
 		},
 		{
 			name:     "no a tags",
@@ -146,13 +146,13 @@ func TestGetURLsFromHTML(t *testing.T) {
 				<a href=>
 					<span>Boot.dev</span>
 				</a>
-				<a href="https://other.com/path/one">
+				<a href="https://other.com/path/noref">
 					<span>Boot.dev</span>
 				</a>
 			</body>
 		</html>
 		`,
-			expected: []string{"https://other.com/path/one"},
+			expected: []string{"https://other.com/path/noref"},
 		},
 		{
 			name:     "multiple href values",
@@ -163,7 +163,7 @@ func TestGetURLsFromHTML(t *testing.T) {
 				<a href="/path/one">
 					<span>Boot.dev</span>
 				</a>
-				<a href="https://other.com/path/one">
+				<a href="https://other.com/path/two">
 					<span>Boot.dev</span>
 				</a>
 				<div>
@@ -174,9 +174,9 @@ func TestGetURLsFromHTML(t *testing.T) {
 			</body>
 		</html>
 		`,
-			expected: []string{"https://blog.boot.dev/path/one", "https://other.com/path/one", "https://other.com/home/index"},
+			expected: []string{"https://blog.boot.dev/path/one", "https://other.com/path/two", "https://other.com/home/index"},
 		},
-		{
+		{ /////
 			name:     "malformed href values",
 			inputURL: "https://blog.boot.dev",
 			inputBody: `
@@ -185,7 +185,7 @@ func TestGetURLsFromHTML(t *testing.T) {
 				<a href="-map,path">
 					<span>Boot.dev</span>
 				</a>
-				<a href="hps:/-other.cmne">
+				<a href="hps:/-otMALher.cmFORMne">
 					<span>Boot.dev</span>
 				</a>
 			</body>

@@ -49,7 +49,7 @@ func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, err
 				if nAtt.Val == "" {
 					continue
 				}
-				u, err := url.Parse(nAtt.Val)
+				u, err := url.ParseRequestURI(nAtt.Val)
 				if err != nil {
 					continue
 				}
@@ -58,10 +58,17 @@ func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, err
 					return nil, err
 				}
 				urlBase := base.ResolveReference(u)
-				if !slices.Contains(urlSlice, urlBase.String()) {
+
+				fmt.Println("------------")
+				fmt.Printf("Scheme: %v\nHost: %v\nPath:%v\nOpaque: %v\nOmit: %v\nIs Abs: %v\nFull String\n-----\n%s\n------\n", urlBase.Scheme, urlBase.Host, urlBase.Path, urlBase.Opaque, urlBase.OmitHost, urlBase.IsAbs(), urlBase.String())
+				//////
+				fmt.Println("______")
+
+				if !slices.Contains(urlSlice, urlBase.String()) && verifyURL(urlBase) {
 					urlSlice = append(urlSlice, urlBase.String())
 				}
 			}
+
 		}
 	}
 	urlSlice, err := extractURLs(n.FirstChild, baseURL, urlSlice)
@@ -73,4 +80,13 @@ func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, err
 		return nil, err
 	}
 	return urlSlice, nil
+}
+
+func verifyURL(resolvedURL *url.URL) bool {
+	scheme := resolvedURL.Scheme
+	host := resolvedURL.Host
+	if (scheme == "http" || scheme == "https") && host != "" {
+		return true
+	}
+	return false
 }
