@@ -59,11 +59,6 @@ func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, err
 				}
 				urlBase := base.ResolveReference(u)
 
-				fmt.Println("------------")
-				fmt.Printf("Scheme: %v\nHost: %v\nPath:%v\nOpaque: %v\nOmit: %v\nIs Abs: %v\nFull String\n-----\n%s\n------\n", urlBase.Scheme, urlBase.Host, urlBase.Path, urlBase.Opaque, urlBase.OmitHost, urlBase.IsAbs(), urlBase.String())
-				//////
-				fmt.Println("______")
-
 				if !slices.Contains(urlSlice, urlBase.String()) && verifyURL(urlBase) {
 					urlSlice = append(urlSlice, urlBase.String())
 				}
@@ -82,7 +77,7 @@ func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, err
 	return urlSlice, nil
 }
 
-// possible to send ping?
+// possible to send ping? /safe?
 func verifyURL(resolvedURL *url.URL) bool {
 	scheme := resolvedURL.Scheme
 	host := resolvedURL.Host
