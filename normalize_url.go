@@ -82,6 +82,7 @@ func extractURLs(n *html.Node, baseURL string, urlSlice []string) ([]string, err
 	return urlSlice, nil
 }
 
+// possible to send ping?
 func verifyURL(resolvedURL *url.URL) bool {
 	scheme := resolvedURL.Scheme
 	host := resolvedURL.Host
