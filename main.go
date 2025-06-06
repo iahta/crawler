@@ -8,7 +8,6 @@ import (
 func main() {
 	//argsWithProPath := os.Args
 	cmd := os.Args[1:]
-	pages := make(map[string]int)
 
 	if len(cmd) < 1 {
 		fmt.Println("no website provided")
@@ -18,12 +17,17 @@ func main() {
 		os.Exit(1)
 	} else if len(cmd) == 1 {
 		fmt.Printf("starting crawl of: %v\n", cmd[0])
-		err := crawlPage(cmd[0], cmd[0], pages)
+		const maxConcurrency = 3
+		cfg, err := configure(cmd[0], maxConcurrency)
 		if err != nil {
-			fmt.Printf("error crawling html\nError: %v\n", err)
-			os.Exit(1)
+			fmt.Printf("Error - configure: %v", err)
+			return
 		}
-		for page, count := range pages {
+		cfg.wg.Add(1)
+		go cfg.crawlPage(cmd[0])
+		cfg.wg.Wait()
+
+		for page, count := range cfg.pages {
 			fmt.Printf("Key: %v, Value: %v\n", page, count)
 		}
 
