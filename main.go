@@ -3,22 +3,31 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 func main() {
 	//argsWithProPath := os.Args
 	cmd := os.Args[1:]
 
-	if len(cmd) < 1 {
-		fmt.Println("no website provided")
+	if len(cmd) < 3 {
+		fmt.Println("missing all arguments")
 		os.Exit(1)
-	} else if len(cmd) > 1 {
+	} else if len(cmd) > 3 {
 		fmt.Println("too many arguments provided")
 		os.Exit(1)
-	} else if len(cmd) == 1 {
+	} else if len(cmd) == 3 {
 		fmt.Printf("starting crawl of: %v\n", cmd[0])
-		const maxConcurrency = 3
-		cfg, err := configure(cmd[0], maxConcurrency)
+		maxConcurrency, err := strconv.Atoi(cmd[1])
+		if err != nil {
+			fmt.Printf("error retriving max concurrency")
+			return
+		}
+		maxPages, err := strconv.Atoi(cmd[2])
+		if err != nil {
+			fmt.Printf("error retrieving page max")
+		}
+		cfg, err := configure(cmd[0], maxConcurrency, maxPages)
 		if err != nil {
 			fmt.Printf("Error - configure: %v", err)
 			return
@@ -28,7 +37,7 @@ func main() {
 		cfg.wg.Wait()
 
 		for page, count := range cfg.pages {
-			fmt.Printf("Key: %v, Value: %v\n", page, count)
+			fmt.Printf("Page: %v, Count: %v\n", page, count)
 		}
 
 	}
